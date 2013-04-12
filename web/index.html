@@ -1,0 +1,28 @@
+<html>
+<head>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+<script src="http://cdn.sockjs.org/sockjs-0.2.1.min.js"></script>
+<script src="js/vertxbus.js"></script>
+
+<script>
+    var eb = new vertx.EventBus('http://'+top.location.host+'/eventbus');
+
+    eb.onopen = function() {
+      console.log("eventbus open");
+      $('#responseDiv').html("Come on! Pull the Lever!");
+    }
+    
+    function pull_lever(){
+    	eb.send("pull.lever",{probability: $('#probability').val()}, function(response){
+    		$('#responseDiv').html(JSON.stringify(response));
+    		console.log("pull.lever.response:"+JSON.stringify(response));
+    	});
+    }
+</script>
+</head>
+<body>
+<div id='responseDiv'></div>
+Win probability <input id="probability" value="10">%
+<button onClick='pull_lever();'>Pull Lever</button>
+</body>
+</html>
