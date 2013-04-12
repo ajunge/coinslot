@@ -1,0 +1,1 @@
+web: vertx run com.coinslot.slotmachine.Server -cp bin/ -repo vert-x.github.io
