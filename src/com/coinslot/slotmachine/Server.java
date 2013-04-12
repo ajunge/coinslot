@@ -14,8 +14,18 @@ public class Server extends Verticle {
 		JsonObject inboundPermitted1 = new JsonObject().putString("address", "pull.lever");
 		inboundPermitted.add(inboundPermitted1);
 		
+		int port=8080;
+		if(System.getenv("PORT")!=null && !System.getenv("PORT").equals("")){
+			try{
+				port=Integer.parseInt(System.getenv("PORT"));
+			}catch (Exception e){
+				port=8080;
+			}
+		}
+		
 		JsonObject webServerConf = new JsonObject()
-					.putNumber("port", 8080)
+					.putNumber("port", port )
+					.putString("host", "0.0.0.0")
 					.putBoolean("bridge", true)
 					.putArray("inbound_permitted", inboundPermitted);
 				
@@ -23,5 +33,5 @@ public class Server extends Verticle {
 		container.deployModule("vertx.web-server-v1.0", webServerConf);
 	}
 	
-	
+	//.listen( System.getenv('PORT') as int, '0.0.0.0' )
 }
