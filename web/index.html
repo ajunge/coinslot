@@ -3,26 +3,79 @@
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
 <script src="http://cdn.sockjs.org/sockjs-0.2.1.min.js"></script>
 <script src="js/vertxbus.js"></script>
+<style>
+.reel {font-size: 100px; font-family: Sans}
+</style>
+</head>
+<body>
+<span id='reel1' class='reel'>-</span>&nbsp;
+<span id='reel2' class='reel'>-</span>&nbsp;
+<span id='reel3' class='reel'>-</span>
+<br/>
+Credit <span id='creditSpan'></span>
+<div id='infoDiv' style='font-size:50px'></div>
+<button onClick='pull_lever(1);'>Bet 1 Coin</button>
+<button onClick='pull_lever(2);'>Bet 2 Coins</button>
+<button onClick='pull_lever(3);'>Bet 3 Coins</button>
+<br/>
+<input type="text" id="uuid" style="width: 300px"/>
+<div id='responseDiv'></div>
 
 <script>
+	//UUID
+	$('#uuid').val(function(a,b){for(b=a='';a++<36;b+=a*51&52?(a^15?8^Math.random()*(a^20?16:4):4).toString(16):'-');return b});
+
     var eb = new vertx.EventBus('http://'+top.location.host+'/eventbus');
 
     eb.onopen = function() {
       console.log("eventbus open");
-      $('#responseDiv').html("Come on! Pull the Lever!");
+      eb.send("get.credit",{uuid: $('#uuid').val()},function(response){
+      		$('#creditSpan').html(response.credit);
+      		$('#infoDiv').html("Come on! Bet some coins!");
+    		console.log("get.credit.response:"+JSON.stringify(response));
+      });
     }
     
-    function pull_lever(){
-    	eb.send("pull.lever",{probability: $('#probability').val()}, function(response){
-    		$('#responseDiv').html(JSON.stringify(response));
-    		console.log("pull.lever.response:"+JSON.stringify(response));
+    function pull_lever(p_coins){
+    	$('#infoDiv').html('');
+		eb.send("pull.lever",{coins: p_coins, uuid: $('#uuid').val()}, function(response){
+    		$('#creditSpan').html(response.credit);
+      		if(response.error==null){
+	      		
+	      		//$('#reel1').html(response.REEL0);
+	      		//$('#reel2').html(response.REEL1);
+	      		//$('#reel3').html(response.REEL2);
+	    		displayReel(10,response.REEL0,$('#reel1'));
+	      		displayReel(10,response.REEL1,$('#reel2'));
+	      		displayReel(10,response.REEL2,$('#reel3'));
+	      		
+	      		setTimeout(function(){
+		      		var info="";
+		      		if(response.win){
+		      			info="YOU WIN "+response.prize+" coins!!!";
+		      		}else{
+		      			info="Sorry, you didn't win this time. Try again!";
+		      		}
+		      		$('#infoDiv').html(info);
+				},1200);
+			}else{
+				$('#infoDiv').html(response.error);
+			}			      		
+      		console.log("pull.lever.response:"+JSON.stringify(response));
     	});
     }
+    
+    function displayReel(times, final, element){
+    	element.html('');
+    	if (times > 1){
+	        element.html((Math.round(Math.random() * 9)));
+	        setTimeout(function(){displayReel(times-1,final, element);},100);
+	    }else{
+        	element.html(final);
+        }
+        
+	}
 </script>
-</head>
-<body>
-<div id='responseDiv'></div>
-Win probability <input id="probability" value="10">%
-<button onClick='pull_lever();'>Pull Lever</button>
+
 </body>
 </html>
